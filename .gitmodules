@@ -1,0 +1,3 @@
+[submodule "src/Swiss"]
+	path = src/Swiss
+	url = https://github.com/HannesHaglund/Swiss.git
