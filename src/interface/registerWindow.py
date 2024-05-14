@@ -3,9 +3,13 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
+from interface.roundWindow import RoundWindow
+
 
 class RegisterWindow(Gtk.Window):
-    def __init__(self, tournament_name):
+    def __init__(self, parent, tournament_name):
+        parent.destroy()
+
         Gtk.Window.__init__(
             self,
             title=f"{tournament_name} - Gerenciador de Torneio Suiço - Hefestus",
@@ -13,23 +17,32 @@ class RegisterWindow(Gtk.Window):
         )
 
         self.__contestants_list = []
+        self.__tournament_name = tournament_name
 
         self.__main_grid = Gtk.Grid(column_spacing=10, row_spacing=10)
         self.add(self.__main_grid)
 
-        self.__contestant_entry = Gtk.Entry(placeholder_text="Nome do Competidor")
-        self.__main_grid.attach(self.__contestant_entry, 0, 0, 1, 1)
+        self.__main_title = Gtk.Label(
+            label=f"<big>Registrar Competidores</big>",
+            use_markup=True,
+        )
+        self.__main_grid.attach(self.__main_title, 0, 0, 4, 1)
 
-        self.__register_button = Gtk.Button(label="+")
+        self.__contestant_entry = Gtk.Entry(placeholder_text="Nome do Competidor")
+        self.__main_grid.attach(self.__contestant_entry, 0, 1, 3, 1)
+
+        self.__register_button = Gtk.Button(label="Adicionar")
+        self.__register_button.get_style_context().add_class("suggested-action")
         self.__register_button.connect("clicked", self.__register_button_clicked)
-        self.__main_grid.attach(self.__register_button, 1, 0, 1, 1)
+        self.__main_grid.attach(self.__register_button, 3, 1, 1, 1)
 
         self.__contestants_scroll = Gtk.ScrolledWindow()
         self.__contestants_scroll.set_min_content_height(200)
         self.__contestants_scroll.set_min_content_width(500)
-        self.__main_grid.attach(self.__contestants_scroll, 0, 1, 2, 1)
+        self.__main_grid.attach(self.__contestants_scroll, 0, 2, 4, 1)
 
         self.__contestants_tree = Gtk.TreeView(self.__get_contestants())
+        self.__contestants_tree.set_headers_visible(False)
         self.__contestants_scroll.add(self.__contestants_tree)
 
         cellrenderertext = Gtk.CellRendererText()
@@ -38,11 +51,36 @@ class RegisterWindow(Gtk.Window):
 
         self.__update_contestants_list()
 
+        self.__delete_button = Gtk.Button(label="Deletar")
+        self.__delete_button.get_style_context().add_class("destructive-action")
+        self.__delete_button.connect("clicked", self.__delete_button_clicked)
+        self.__delete_button.set_sensitive(False)
+        self.__main_grid.attach(self.__delete_button, 0, 3, 1, 1)
+
+        # Only enable delete button when a contestant is selected
+        self.__contestants_selection = self.__contestants_tree.get_selection()
+        self.__contestants_selection.connect(
+            "changed", self.__contestants_selection_changed
+        )
+
+        self.__continue_button = Gtk.Button(label="Continuar")
+        self.__continue_button.connect("clicked", self.__continue_button_clicked)
+        self.__main_grid.attach(self.__continue_button, 3, 3, 1, 1)
+
     def __get_contestants(self):
         l = Gtk.ListStore(int, str)
         for i, s in enumerate(self.__contestants_list):
             l.append([int(i), str(s)])
         return l
+
+    def __update_contestants_list(self):
+        contestants_list = self.__get_contestants()
+        self.__contestants_tree.set_model(contestants_list)
+
+    def __contestants_selection_changed(self, selection):
+        model, treeiter = selection.get_selected()
+        set_sensitive = treeiter is not None
+        self.__delete_button.set_sensitive(set_sensitive)
 
     def __register_button_clicked(self, button):
         new_contestant_name = self.__contestant_entry.get_text()
@@ -53,9 +91,40 @@ class RegisterWindow(Gtk.Window):
         self.__contestant_entry.set_text("")
         self.__update_contestants_list()
 
-    def __update_contestants_list(self):
-        contestants_list = self.__get_contestants()
-        self.__contestants_tree.set_model(contestants_list)
+    def __delete_button_clicked(self, button):
+        selection = self.__contestants_tree.get_selection()
+        model, treeiter = selection.get_selected()
+        if treeiter is not None:
+            self.__contestants_list.pop(model[treeiter][0])
+            self.__update_contestants_list()
+
+    def __continue_button_clicked(self, button):
+        if len(self.__contestants_list) < 2:
+            dialog = Gtk.MessageDialog(
+                parent=self,
+                flags=0,
+                type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                message_format="É necessário ter pelo menos 2 competidores para continuar",
+            )
+            dialog.run()
+            dialog.destroy()
+            return
+
+        confirmation_dialog = Gtk.MessageDialog(
+            parent=self,
+            flags=0,
+            type=Gtk.MessageType.QUESTION,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            message_format=f"Deseja continuar com {len(self.__contestants_list)} competidores? Essa ação não pode ser desfeita.",
+        )
+        response = confirmation_dialog.run()
+        confirmation_dialog.destroy()
+
+        if response == Gtk.ResponseType.CANCEL:
+            return
+
+        RoundWindow(self, self.__tournament_name, 1, self.__contestants_list).run()
 
     def run(self):
         self.set_icon_from_file("assets/coliseu.png")
