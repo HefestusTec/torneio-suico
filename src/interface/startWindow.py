@@ -1,29 +1,28 @@
 import gi
 
 gi.require_version("Gtk", "3.0")
+gi.require_version("GdkPixbuf", "2.0")
 from gi.repository import GdkPixbuf, Gtk
 
 from interface.registerWindow import RegisterWindow
 
 
 class StartWindow(Gtk.Window):
-    def __init__(self):
-        Gtk.Window.__init__(
-            self, title="Gerenciador de Torneio Suiço - Hefestus", border_width=10
-        )
+    def __init__(self) -> Gtk.Window:
+        __image_height = 400
+        __image_width = __image_height * (9 / 16)
+
+        Gtk.Window.__init__(self, title="Gerenciador de Torneio Suiço", border_width=10)
 
         self.__tournaments_list = ["Selecionar Torneio"]
 
         self.__main_grid = Gtk.Grid(column_spacing=10, row_spacing=10)
         self.add(self.__main_grid)
 
-        __image_height = 400
-        __image_width = __image_height * (9 / 16)
-
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file("assets/coliseu.png").scale_simple(
+        __pixbuf = GdkPixbuf.Pixbuf.new_from_file("assets/coliseu.png").scale_simple(
             __image_height, __image_width, 1
         )
-        self.__logo_image = Gtk.Image.new_from_pixbuf(pixbuf)
+        self.__logo_image = Gtk.Image.new_from_pixbuf(__pixbuf)
         self.__main_grid.attach(self.__logo_image, 0, 0, 2, 1)
 
         self.__tournament_entry = Gtk.Entry(placeholder_text="Nome do Torneio")
@@ -53,7 +52,7 @@ class StartWindow(Gtk.Window):
             l.append([int(i), str(s)])
         return l
 
-    def __tournaments_combo_changed(self, combo):
+    def __tournaments_combo_changed(self, combo: Gtk.ComboBox) -> None:
         if self.__tournaments_combo.get_active() == 0:
             self.__create_button.get_style_context().add_class("suggested-action")
             self.__load_button.get_style_context().remove_class("suggested-action")
@@ -63,7 +62,7 @@ class StartWindow(Gtk.Window):
             self.__load_button.get_style_context().add_class("suggested-action")
             self.__load_button.set_sensitive(True)
 
-    def __create_button_clicked(self, button):
+    def __create_button_clicked(self, button: Gtk.Button) -> None:
         new_tournament_name = self.__tournament_entry.get_text()
         if not new_tournament_name:
             return
@@ -73,7 +72,7 @@ class StartWindow(Gtk.Window):
             flags=0,
             type=Gtk.MessageType.QUESTION,
             buttons=Gtk.ButtonsType.OK_CANCEL,
-            message_format=f'Deseja criar o torneio "{new_tournament_name}"? Essa ação não pode ser desfeita.',
+            message_format=f'Deseja criar o torneio "{new_tournament_name}"?\nEssa ação não pode ser desfeita.',
         )
         response = confirmation_dialog.run()
         confirmation_dialog.destroy()
@@ -86,11 +85,11 @@ class StartWindow(Gtk.Window):
         self.__tournaments_combo.set_model(self.__get_tournaments())
         self.__tournaments_combo.set_active(len(self.__tournaments_list) - 1)
 
-    def __load_button_clicked(self, button):
+    def __load_button_clicked(self, button: Gtk.Button) -> None:
         tournament_name = self.__tournaments_list[self.__tournaments_combo.get_active()]
         RegisterWindow(self, tournament_name).run()
 
-    def run(self):
+    def run(self) -> None:
         self.set_icon_from_file("assets/coliseu.png")
         self.connect("destroy", Gtk.main_quit)
         self.show_all()
