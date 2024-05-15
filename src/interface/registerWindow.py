@@ -4,6 +4,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
 from interface.roundSettingWindow import RoundSettingWindow
+from interface import swiss_handler
 
 
 class RegisterWindow(Gtk.Window):
@@ -54,8 +55,6 @@ class RegisterWindow(Gtk.Window):
         column_text = Gtk.TreeViewColumn("Nome do Competidor", cellrenderertext, text=1)
         self.__contestants_tree.append_column(column_text)
 
-        self.__update_contestants_list()
-
         self.__delete_button = Gtk.Button(label="Deletar")
         self.__delete_button.get_style_context().add_class("destructive-action")
         self.__delete_button.connect("clicked", self.__delete_button_clicked)
@@ -72,6 +71,8 @@ class RegisterWindow(Gtk.Window):
         self.__continue_button.connect("clicked", self.__continue_button_clicked)
         self.__main_grid.attach(self.__continue_button, 3, 4, 1, 1)
 
+        self.__update_contestants_list()
+
     def __get_contestants(self) -> Gtk.ListStore:
         l = Gtk.ListStore(int, str)
         for i, s in enumerate(self.__contestants_list):
@@ -82,8 +83,11 @@ class RegisterWindow(Gtk.Window):
         contestants_list = self.__get_contestants()
         self.__contestants_tree.set_model(contestants_list)
 
+        enable_continue = len(contestants_list) >= 2
+        self.__continue_button.set_sensitive(enable_continue)
+
     def __contestants_selection_changed(self, selection: Gtk.TreeSelection) -> None:
-        model, treeiter = selection.get_selected()
+        _, treeiter = selection.get_selected()
         set_sensitive = treeiter is not None
         self.__delete_button.set_sensitive(set_sensitive)
 
@@ -104,18 +108,6 @@ class RegisterWindow(Gtk.Window):
             self.__update_contestants_list()
 
     def __continue_button_clicked(self, button: Gtk.Button) -> None:
-        if len(self.__contestants_list) < 2:
-            dialog = Gtk.MessageDialog(
-                parent=self,
-                flags=0,
-                type=Gtk.MessageType.ERROR,
-                buttons=Gtk.ButtonsType.OK,
-                message_format="É necessário ter pelo menos 2 competidores para continuar",
-            )
-            dialog.run()
-            dialog.destroy()
-            return
-
         confirmation_dialog = Gtk.MessageDialog(
             parent=self,
             flags=0,
@@ -128,6 +120,8 @@ class RegisterWindow(Gtk.Window):
 
         if response == Gtk.ResponseType.CANCEL:
             return
+
+        swiss_handler.add_contestants(self.__contestants_list)
 
         RoundSettingWindow(self, self.__tournament_name, self.__contestants_list).run()
 

@@ -1,1 +1,2 @@
 networkx
+peewee==3.17.5
