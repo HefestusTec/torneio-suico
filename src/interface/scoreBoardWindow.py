@@ -3,21 +3,23 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
+from interface import database_handler
+
 
 class ScoreBoardWindow(Gtk.Window):
-    def __init__(
-        self, parent: Gtk.Window, tournament_name: str, scoreboard: list
-    ) -> Gtk.Window:
+    def __init__(self, parent: Gtk.Window, tournament_id: int) -> Gtk.Window:
         parent.destroy()
+
+        self.__tournament = database_handler.get_tournament_by_id(tournament_id)
+        self.__tournament_name = self.__tournament.name
+
+        database_handler.set_setup_stage(self.__tournament, 3)
 
         Gtk.Window.__init__(
             self,
-            title=f"{tournament_name} - Gerenciador de Torneio Suiço",
+            title=f"{self.__tournament_name} - Gerenciador de Torneio Suiço",
             border_width=10,
         )
-
-        self.__tournament_name = tournament_name
-        self.__scoreboard = scoreboard
 
         self.__main_grid = Gtk.Grid(column_spacing=10, row_spacing=10)
         self.add(self.__main_grid)
@@ -53,8 +55,9 @@ class ScoreBoardWindow(Gtk.Window):
 
     def __get_scoreboard(self) -> Gtk.ListStore:
         store = Gtk.ListStore(int, str, int)
-        for ranking in self.__scoreboard:
-            store.append(ranking)
+        scoreboard = database_handler.get_scoreboard(self.__tournament)
+        for i, (contestant, score) in enumerate(scoreboard):
+            store.append([i + 1, contestant, score])
         return store
 
     def __update_scoreboard(self):

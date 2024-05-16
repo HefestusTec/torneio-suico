@@ -1,3 +1,4 @@
-from swissHandler import SwissHandler
+from database.databaseHandler import DatabaseHandler
 
-swiss_handler = SwissHandler()
+swiss_handler = None
+database_handler = DatabaseHandler()

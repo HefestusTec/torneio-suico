@@ -3,8 +3,13 @@ import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("GdkPixbuf", "2.0")
 from gi.repository import GdkPixbuf, Gtk
+from peewee import IntegrityError
 
+from interface import database_handler
 from interface.registerWindow import RegisterWindow
+from interface.tournamentSettingsWindow import TournamentSettingsWindow
+from interface.roundWindow import RoundWindow
+from interface.scoreBoardWindow import ScoreBoardWindow
 
 
 class StartWindow(Gtk.Window):
@@ -48,6 +53,9 @@ class StartWindow(Gtk.Window):
 
     def __get_tournaments(self):
         l = Gtk.ListStore(int, str)
+        self.__tournaments_list = ["Selecionar Torneio"] + [
+            str(s) for _, s in database_handler.get_tournaments()
+        ]
         for i, s in enumerate(self.__tournaments_list):
             l.append([int(i), str(s)])
         return l
@@ -80,14 +88,40 @@ class StartWindow(Gtk.Window):
         if response == Gtk.ResponseType.CANCEL:
             return
 
+        try:
+            database_handler.create_tournament(new_tournament_name)
+        except IntegrityError as e:
+            error_dialog = Gtk.MessageDialog(
+                parent=self,
+                flags=0,
+                type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                message_format=f"Erro ao criar torneio:\n{e}\nVerifique o nome do torneio e tente novamente.",
+            )
+            error_dialog.run()
+            error_dialog.destroy()
+            return
+
         self.__tournament_entry.set_text("")
-        self.__tournaments_list.append(new_tournament_name)
         self.__tournaments_combo.set_model(self.__get_tournaments())
         self.__tournaments_combo.set_active(len(self.__tournaments_list) - 1)
 
     def __load_button_clicked(self, button: Gtk.Button) -> None:
-        tournament_name = self.__tournaments_list[self.__tournaments_combo.get_active()]
-        RegisterWindow(self, tournament_name).run()
+        tournament_id = self.__tournaments_combo.get_active()
+        tournament = database_handler.get_tournament_by_id(tournament_id)
+        stage = tournament.setup_stage
+
+        if stage == 0:
+            RegisterWindow(self, tournament_id).run()
+        if stage == 1:
+            TournamentSettingsWindow(self, tournament_id).run()
+        if stage == 2:
+            RoundWindow(self, tournament_id).run()
+        if stage == 3:
+            ScoreBoardWindow(
+                self,
+                tournament_id,
+            ).run()
 
     def run(self) -> None:
         self.set_icon_from_file("assets/coliseu.png")

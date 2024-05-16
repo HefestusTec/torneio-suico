@@ -8,7 +8,7 @@ from peewee import (
 )
 
 
-DB_PATH = "torneio-suico.db"
+DB_PATH = "persist/torneio-suico.db"
 
 
 class BaseModel(Model):
@@ -18,33 +18,26 @@ class BaseModel(Model):
 
 class Contestant(BaseModel):
     id = IntegerField(primary_key=True)
-    name = CharField(unique=True)
+    name = CharField()
 
 
 class Tournament(BaseModel):
     id = IntegerField(primary_key=True)
     name = CharField(unique=True)
+    setup_stage = IntegerField(default=0)
     current_round = IntegerField(default=1)
     rounds = IntegerField(default=1)
+    max_round_score = IntegerField(default=1)
     contestants = ManyToManyField(Contestant, backref="tournaments")
 
 
 class Match(BaseModel):
     id = IntegerField(primary_key=True)
-    contestant1 = ForeignKeyField(Contestant, backref="matches_as_contestant1")
-    contestant2 = ForeignKeyField(Contestant, backref="matches_as_contestant2")
-    winner = ForeignKeyField(Contestant, backref="matches_as_winner", null=True)
-    round = IntegerField()
-    contestant1_score = IntegerField(null=True)
-    contestant2_score = IntegerField(null=True)
     tournament = ForeignKeyField(Tournament, backref="matches")
-
-
-class Round(BaseModel):
-    id = IntegerField(primary_key=True)
-    number = IntegerField()
-    tournament = ForeignKeyField(Tournament, backref="rounds")
-    matches = ManyToManyField(Match, backref="rounds")
-    contestants = ManyToManyField(Contestant, backref="rounds")
-    winners = ManyToManyField(Contestant, backref="rounds_won")
-    losers = ManyToManyField(Contestant, backref="rounds_lost")
+    round = IntegerField()
+    contestant1 = ForeignKeyField(Contestant, backref="matches_as_contestant1")
+    contestant2 = ForeignKeyField(
+        Contestant, backref="matches_as_contestant2", null=True
+    )
+    contestant1_score = IntegerField(default=0)
+    contestant2_score = IntegerField(default=0)

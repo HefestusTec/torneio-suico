@@ -1,5 +1,3 @@
-from typing import AsyncGenerator
-
 from Swiss.match_log import MatchLog
 from Swiss.pairing_strategies import min_cost
 
@@ -17,6 +15,7 @@ class SwissHandler:
 
     def get_round_pairings(self) -> list:
         self.pairings = self.pairing_strategy.pairings(self.match_log)
+        print(self.pairings.string())
         return self.pairings.pairs
 
     def get_bye_contestant(self) -> str:

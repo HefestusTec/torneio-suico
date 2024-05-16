@@ -1,36 +1,44 @@
-import random
-
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
+from interface import swiss_handler, database_handler
 from interface.scoreBoardWindow import ScoreBoardWindow
-from interface import swiss_handler
+from swissHandler import SwissHandler
 
 
 class RoundWindow(Gtk.Window):
     def __init__(
         self,
         parent: Gtk.Window,
-        tournament_name: str,
-        contestants_list: list,
-        round_count: int,
-        max_rounds: int,
+        tournament_id: int,
     ) -> Gtk.Window:
         parent.destroy()
+
+        self.__tournament_id = tournament_id
+        self.__tournament = database_handler.get_tournament_by_id(tournament_id)
+        self.__tournament_name = self.__tournament.name
+        self.__contestants_list = database_handler.get_tournament_contestants(
+            self.__tournament
+        )
+        self.__round_count = self.__tournament.current_round
+        self.__max_rounds = self.__tournament.rounds
+
+        database_handler.set_setup_stage(self.__tournament, 2)
+
+        global swiss_handler
+
+        self.__load_swiss_handler()
 
         self.__pairings_list = swiss_handler.get_round_pairings()
         self.__bye_contestant = swiss_handler.get_bye_contestant()
 
-        self.__tournament_name = tournament_name
-        self.__contestants_list = contestants_list
-        self.__round_count = round_count
-        self.__max_rounds = max_rounds
+        self.__matches = self.__create_matches()
 
         Gtk.Window.__init__(
             self,
-            title=f"{self.__tournament_name} - Rodada {round_count} - Gerenciador de Torneio Suiço",
+            title=f"{self.__tournament_name} - Rodada {self.__round_count} - Gerenciador de Torneio Suiço",
             border_width=10,
         )
 
@@ -44,7 +52,7 @@ class RoundWindow(Gtk.Window):
         self.__main_grid.attach(self.__tournament_title, 0, 0, 9, 1)
 
         self.__round_title = Gtk.Label(
-            label=f"Rodada {round_count}",
+            label=f"Rodada {self.__round_count}",
         )
         self.__main_grid.attach(self.__round_title, 0, 1, 9, 1)
 
@@ -53,12 +61,17 @@ class RoundWindow(Gtk.Window):
 
         self.__score_labels = []
 
-        for i, pairing in enumerate(self.__pairings_list):
-            contestant1, contestant2 = pairing.player_a, pairing.player_b
-            self.__render_match(i, contestant1, contestant2)
+        for i, match in enumerate(self.__matches):
+            self.__render_match(
+                i,
+                match.contestant1,
+                match.contestant2,
+                match.contestant1_score,
+                match.contestant2_score,
+            )
 
-        if self.__bye_contestant:
-            self.__render_match(i + 1, self.__bye_contestant, None)
+        # if self.__bye_contestant:
+        #    self.__render_match(i + 1, self.__bye_contestant, None)
 
         self.__spacer_label = Gtk.Label()
         self.__main_grid.attach(self.__spacer_label, 0, i + 5, 9, 1)
@@ -73,8 +86,10 @@ class RoundWindow(Gtk.Window):
         self.__continue_button.get_style_context().add_class("suggested-action")
         self.__main_grid.attach(self.__continue_button, 0, i + 6, 9, 1)
 
-    def __render_match(self, i: int, contestant1: str, contestant2: str) -> None:
-        self.__main_grid.attach(Gtk.Label(label=contestant1), 0, i + 3, 1, 1)
+    def __render_match(
+        self, i: int, contestant1, contestant2, contestant1_score, contestant2_score
+    ):
+        self.__main_grid.attach(Gtk.Label(label=contestant1.name), 0, i + 3, 1, 1)
         __remove_points_button = Gtk.Button(label="-")
         __remove_points_button.get_style_context().add_class("destructive-action")
         __remove_points_button.connect(
@@ -82,7 +97,9 @@ class RoundWindow(Gtk.Window):
         )
         self.__main_grid.attach(__remove_points_button, 1, i + 3, 1, 1)
 
-        __score_label = Gtk.Label(label="<big>0</big>", use_markup=True)
+        __score_label = Gtk.Label(
+            label=f"<big>{contestant1_score}</big>", use_markup=True
+        )
         self.__main_grid.attach(__score_label, 2, i + 3, 1, 1)
         self.__score_labels.append(__score_label)
 
@@ -102,7 +119,9 @@ class RoundWindow(Gtk.Window):
         )
         self.__main_grid.attach(__remove_points_button, 5, i + 3, 1, 1)
 
-        __score_label = Gtk.Label(label="<big>0</big>", use_markup=True)
+        __score_label = Gtk.Label(
+            label=f"<big>{contestant2_score}</big>", use_markup=True
+        )
         self.__main_grid.attach(__score_label, 6, i + 3, 1, 1)
         self.__score_labels.append(__score_label)
 
@@ -114,7 +133,7 @@ class RoundWindow(Gtk.Window):
         self.__main_grid.attach(__add_points_button, 7, i + 3, 1, 1)
 
         self.__main_grid.attach(
-            Gtk.Label(label=contestant2 if contestant2 else "BYE"), 8, i + 3, 1, 1
+            Gtk.Label(label=contestant2.name if contestant2 else "BYE"), 8, i + 3, 1, 1
         )
 
     def __remove_points_button_clicked(
@@ -125,11 +144,23 @@ class RoundWindow(Gtk.Window):
             return
         score -= 1
         self.__score_labels[i * 2 + j].set_markup(f"<big>{score}</big>")
+        database_handler.set_match_result(
+            self.__matches[i],
+            int(self.__score_labels[i * 2].get_text()),
+            int(self.__score_labels[i * 2 + 1].get_text()),
+        )
 
     def __add_points_button_clicked(self, button: Gtk.Button, i: int, j: int) -> None:
         score = int(self.__score_labels[i * 2 + j].get_text())
+        if score == self.__tournament.max_round_score:
+            return
         score += 1
         self.__score_labels[i * 2 + j].set_markup(f"<big>{score}</big>")
+        database_handler.set_match_result(
+            self.__matches[i],
+            int(self.__score_labels[i * 2].get_text()),
+            int(self.__score_labels[i * 2 + 1].get_text()),
+        )
 
     def __continue_button_clicked(self, button: Gtk.Button) -> None:
         message = (
@@ -168,20 +199,52 @@ class RoundWindow(Gtk.Window):
         if self.__round_count == self.__max_rounds:
             scoreboard = swiss_handler.get_scoreboard()
 
-            ScoreBoardWindow(
-                self,
-                self.__tournament_name,
-                scoreboard,
-            ).run()
+            ScoreBoardWindow(self, self.__tournament_id).run()
             return
 
-        RoundWindow(
-            self,
-            self.__tournament_name,
-            self.__contestants_list,
-            self.__round_count + 1,
-            self.__max_rounds,
-        ).run()
+        database_handler.go_to_next_round(self.__tournament)
+        RoundWindow(self, self.__tournament_id).run()
+
+    def __load_swiss_handler(self) -> None:
+        global swiss_handler
+        if swiss_handler is None:
+            swiss_handler = SwissHandler()
+            swiss_handler.add_contestants(self.__contestants_list)
+            if self.__round_count > 1:
+                for i in range(1, self.__round_count - 1):
+                    swiss_handler.get_round_pairings()
+                    round_results = database_handler.get_round_results(
+                        self.__tournament, i
+                    )
+                    player_bye = swiss_handler.get_bye_contestant()
+                    max_score = self.__tournament.max_round_score
+                    round_results.append([player_bye, None, max_score, 0])
+                    swiss_handler.add_round_results(round_results)
+
+    def __create_matches(self) -> None:
+        matches = database_handler.get_matches_by_round(
+            self.__tournament, self.__round_count
+        )
+
+        if len(matches) > 0:
+            return matches
+
+        matches = []
+
+        for pair in self.__pairings_list:
+            contestant1, contestant2 = pair.player_a, pair.player_b
+            print(f"Creating match between {contestant1} and {contestant2}")
+            match = database_handler.create_match(
+                self.__tournament, contestant1, contestant2, self.__round_count
+            )
+            matches.append(match)
+        if self.__bye_contestant:
+            print(f"Creating bye match for {self.__bye_contestant}")
+            match = database_handler.create_match(
+                self.__tournament, self.__bye_contestant, None, self.__round_count
+            )
+            matches.append(match)
+        return matches
 
     def run(self) -> None:
         self.connect("destroy", Gtk.main_quit)

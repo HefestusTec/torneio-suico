@@ -3,22 +3,27 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-from interface.roundSettingWindow import RoundSettingWindow
-from interface import swiss_handler
+from interface import swiss_handler, database_handler
+from interface.tournamentSettingsWindow import TournamentSettingsWindow
+from swissHandler import SwissHandler
 
 
 class RegisterWindow(Gtk.Window):
-    def __init__(self, parent: Gtk.Window, tournament_name: str) -> Gtk.Window:
+    def __init__(self, parent: Gtk.Window, tournament_id: int) -> Gtk.Window:
         parent.destroy()
+
+        self.__tournament = database_handler.get_tournament_by_id(tournament_id)
+        self.__tournament_id = tournament_id
+        self.__tournament_name = self.__tournament.name
+        self.__contestants_list = database_handler.get_tournament_contestants(
+            self.__tournament
+        )
 
         Gtk.Window.__init__(
             self,
-            title=f"{tournament_name} - Gerenciador de Torneio Suiço",
+            title=f"{self.__tournament_name} - Gerenciador de Torneio Suiço",
             border_width=10,
         )
-
-        self.__contestants_list = []
-        self.__tournament_name = tournament_name
 
         self.__main_grid = Gtk.Grid(column_spacing=10, row_spacing=10)
         self.add(self.__main_grid)
@@ -93,9 +98,26 @@ class RegisterWindow(Gtk.Window):
 
     def __register_button_clicked(self, button: Gtk.Button) -> None:
         new_contestant_name = self.__contestant_entry.get_text()
+        # clear subsequent spaces
+        new_contestant_name = " ".join(new_contestant_name.split())
+
         if not new_contestant_name:
+            self.__contestant_entry.set_text("")
             return
 
+        if new_contestant_name in self.__contestants_list:
+            dialog = Gtk.MessageDialog(
+                parent=self,
+                flags=0,
+                type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                message_format="Esse competidor já está registrado. Insira um nome diferente.",
+            )
+            dialog.run()
+            dialog.destroy()
+            return
+
+        database_handler.create_contestant(new_contestant_name, self.__tournament)
         self.__contestants_list.append(new_contestant_name)
         self.__contestant_entry.set_text("")
         self.__update_contestants_list()
@@ -104,6 +126,7 @@ class RegisterWindow(Gtk.Window):
         selection = self.__contestants_tree.get_selection()
         model, treeiter = selection.get_selected()
         if treeiter is not None:
+            database_handler.delete_contestant(model[treeiter][1], self.__tournament)
             self.__contestants_list.pop(model[treeiter][0])
             self.__update_contestants_list()
 
@@ -121,9 +144,13 @@ class RegisterWindow(Gtk.Window):
         if response == Gtk.ResponseType.CANCEL:
             return
 
+        global swiss_handler
+
+        if swiss_handler is None:
+            swiss_handler = SwissHandler()
         swiss_handler.add_contestants(self.__contestants_list)
 
-        RoundSettingWindow(self, self.__tournament_name, self.__contestants_list).run()
+        TournamentSettingsWindow(self, self.__tournament_id).run()
 
     def run(self) -> None:
         self.set_icon_from_file("assets/coliseu.png")
