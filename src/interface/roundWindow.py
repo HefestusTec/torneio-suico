@@ -3,7 +3,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-from interface import swiss_handler, database_handler
+from interface import database_handler
 from interface.scoreBoardWindow import ScoreBoardWindow
 from swissHandler import SwissHandler
 
@@ -24,15 +24,18 @@ class RoundWindow(Gtk.Window):
         )
         self.__round_count = self.__tournament.current_round
         self.__max_rounds = self.__tournament.rounds
+        self.__pickle_path = f"persist/{self.__tournament_name}.pickle"
 
         database_handler.set_setup_stage(self.__tournament, 2)
 
-        global swiss_handler
+        self.__swiss_handler = SwissHandler()
+        self.__swiss_handler.load_state(self.__pickle_path)
 
-        self.__load_swiss_handler()
-
-        self.__pairings_list = swiss_handler.get_round_pairings()
-        self.__bye_contestant = swiss_handler.get_bye_contestant()
+        self.__pairings_list = self.__swiss_handler.get_round_pairings(
+            self.__round_count
+        )
+        self.__bye_contestant = self.__swiss_handler.get_bye_contestant()
+        self.__swiss_handler.save_state(self.__pickle_path)
 
         self.__matches = self.__create_matches()
 
@@ -69,9 +72,6 @@ class RoundWindow(Gtk.Window):
                 match.contestant1_score,
                 match.contestant2_score,
             )
-
-        # if self.__bye_contestant:
-        #    self.__render_match(i + 1, self.__bye_contestant, None)
 
         self.__spacer_label = Gtk.Label()
         self.__main_grid.attach(self.__spacer_label, 0, i + 5, 9, 1)
@@ -191,35 +191,19 @@ class RoundWindow(Gtk.Window):
             for i in range(len(self.__pairings_list))
         ]
 
-        swiss_handler.add_round_results(round_results)
-        swiss_handler.add_bye_result(
+        self.__swiss_handler.add_round_results(round_results)
+        self.__swiss_handler.add_bye_result(
             self.__bye_contestant, int(self.__score_labels[-1].get_text())
         )
+        self.__swiss_handler.save_state(self.__pickle_path)
 
         if self.__round_count == self.__max_rounds:
-            scoreboard = swiss_handler.get_scoreboard()
 
             ScoreBoardWindow(self, self.__tournament_id).run()
             return
 
         database_handler.go_to_next_round(self.__tournament)
         RoundWindow(self, self.__tournament_id).run()
-
-    def __load_swiss_handler(self) -> None:
-        global swiss_handler
-        if swiss_handler is None:
-            swiss_handler = SwissHandler()
-            swiss_handler.add_contestants(self.__contestants_list)
-            if self.__round_count > 1:
-                for i in range(1, self.__round_count - 1):
-                    swiss_handler.get_round_pairings()
-                    round_results = database_handler.get_round_results(
-                        self.__tournament, i
-                    )
-                    player_bye = swiss_handler.get_bye_contestant()
-                    max_score = self.__tournament.max_round_score
-                    round_results.append([player_bye, None, max_score, 0])
-                    swiss_handler.add_round_results(round_results)
 
     def __create_matches(self) -> None:
         matches = database_handler.get_matches_by_round(

@@ -1,3 +1,5 @@
+import pickle
+
 from Swiss.match_log import MatchLog
 from Swiss.pairing_strategies import min_cost
 
@@ -7,14 +9,17 @@ class SwissHandler:
         self.match_log = MatchLog()
         self.pairing_strategy = min_cost
         self.pairings = None
+        self.__round = 0
 
     def add_contestants(self, contestants: list) -> None:
         self.contestants = contestants
         for contestant in contestants:
             self.match_log.add_player(contestant)
 
-    def get_round_pairings(self) -> list:
-        self.pairings = self.pairing_strategy.pairings(self.match_log)
+    def get_round_pairings(self, round: int) -> list:
+        if round != self.__round:
+            self.__round = round
+            self.pairings = self.pairing_strategy.pairings(self.match_log)
         print(self.pairings.string())
         return self.pairings.pairs
 
@@ -37,3 +42,19 @@ class SwissHandler:
             for i, contestant in enumerate(self.match_log.ranking()[:-1])
         ]
         return scoreboard
+
+    def save_state(self, file_path: str) -> None:
+        match_log_path = file_path.replace(".pickle", "_match_log.pickle")
+        with open(match_log_path, "wb") as file:
+            pickle.dump(self.match_log, file)
+        pairings_path = file_path.replace(".pickle", "_pairings.pickle")
+        with open(pairings_path, "wb") as file:
+            pickle.dump(self.pairings, file)
+
+    def load_state(self, file_path: str) -> None:
+        match_log_path = file_path.replace(".pickle", "_match_log.pickle")
+        with open(match_log_path, "rb") as file:
+            self.match_log = pickle.load(file)
+        pairings_path = file_path.replace(".pickle", "_pairings.pickle")
+        with open(pairings_path, "rb") as file:
+            self.pairings = pickle.load(file)

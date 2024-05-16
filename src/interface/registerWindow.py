@@ -3,7 +3,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-from interface import swiss_handler, database_handler
+from interface import database_handler
 from interface.tournamentSettingsWindow import TournamentSettingsWindow
 from swissHandler import SwissHandler
 
@@ -144,11 +144,11 @@ class RegisterWindow(Gtk.Window):
         if response == Gtk.ResponseType.CANCEL:
             return
 
-        global swiss_handler
-
-        if swiss_handler is None:
-            swiss_handler = SwissHandler()
+        pickle_path = f"persist/{self.__tournament_name}.pickle"
+        swiss_handler = SwissHandler()
+        swiss_handler.load_state(pickle_path)
         swiss_handler.add_contestants(self.__contestants_list)
+        swiss_handler.save_state(pickle_path)
 
         TournamentSettingsWindow(self, self.__tournament_id).run()
 

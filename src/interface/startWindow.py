@@ -10,6 +10,7 @@ from interface.registerWindow import RegisterWindow
 from interface.tournamentSettingsWindow import TournamentSettingsWindow
 from interface.roundWindow import RoundWindow
 from interface.scoreBoardWindow import ScoreBoardWindow
+from swissHandler import SwissHandler
 
 
 class StartWindow(Gtk.Window):
@@ -106,6 +107,8 @@ class StartWindow(Gtk.Window):
         self.__tournaments_combo.set_model(self.__get_tournaments())
         self.__tournaments_combo.set_active(len(self.__tournaments_list) - 1)
 
+        SwissHandler().save_state(f"persist/{new_tournament_name}.pickle")
+
     def __load_button_clicked(self, button: Gtk.Button) -> None:
         tournament_id = self.__tournaments_combo.get_active()
         tournament = database_handler.get_tournament_by_id(tournament_id)
@@ -118,10 +121,7 @@ class StartWindow(Gtk.Window):
         if stage == 2:
             RoundWindow(self, tournament_id).run()
         if stage == 3:
-            ScoreBoardWindow(
-                self,
-                tournament_id,
-            ).run()
+            ScoreBoardWindow(self, tournament_id).run()
 
     def run(self) -> None:
         self.set_icon_from_file("assets/coliseu.png")
