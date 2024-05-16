@@ -1,7 +1,7 @@
 import pickle
 
-from Swiss.match_log import MatchLog
-from Swiss.pairing_strategies import min_cost
+from swiss.match_log import MatchLog
+from swiss.pairing_strategies import min_cost
 
 
 class SwissHandler:
