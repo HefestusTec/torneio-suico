@@ -47,6 +47,7 @@ class TournamentSettingsWindow(Gtk.Window):
             placeholder_text=f"({self.__min_rounds}-{self.__max_rounds})"
         )
         self.__rounds_entry.set_input_purpose(Gtk.InputPurpose.NUMBER)
+        self.__rounds_entry.connect("activate", self.__rounds_entry_activated)
         self.__main_grid.attach(self.__rounds_entry, 0, 2, 1, 1)
 
         self.__max_score_label = Gtk.Label(
@@ -56,6 +57,7 @@ class TournamentSettingsWindow(Gtk.Window):
 
         self.__max_score_entry = Gtk.Entry(placeholder_text="Pontuação Máxima")
         self.__max_score_entry.set_input_purpose(Gtk.InputPurpose.NUMBER)
+        self.__max_score_entry.connect("activate", self.__start_button_clicked)
         self.__main_grid.attach(self.__max_score_entry, 0, 4, 1, 1)
 
         self.__start_button = Gtk.Button(label="Iniciar Torneio")
@@ -92,6 +94,9 @@ class TournamentSettingsWindow(Gtk.Window):
             entry.set_text("1")
         if __score > MAX_SQLITE_INTEGER:
             entry.set_text(str(MAX_SQLITE_INTEGER))
+
+    def __rounds_entry_activated(self, entry: Gtk.Entry) -> None:
+        self.__max_score_entry.grab_focus()
 
     def __start_button_clicked(self, button: Gtk.Button) -> None:
         if not self.__rounds_entry.get_text().isnumeric():

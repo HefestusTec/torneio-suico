@@ -20,7 +20,6 @@ class SwissHandler:
         if round != self.__round:
             self.__round = round
             self.pairings = self.pairing_strategy.pairings(self.match_log)
-        print(self.pairings.string())
         return self.pairings.pairs
 
     def get_bye_contestant(self) -> str:

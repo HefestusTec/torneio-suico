@@ -40,6 +40,7 @@ class RegisterWindow(Gtk.Window):
         self.__main_grid.attach(self.__register_label, 0, 1, 4, 1)
 
         self.__contestant_entry = Gtk.Entry(placeholder_text="Nome do Competidor")
+        self.__contestant_entry.connect("activate", self.__register_button_clicked)
         self.__main_grid.attach(self.__contestant_entry, 0, 2, 3, 1)
 
         self.__register_button = Gtk.Button(label="Adicionar")

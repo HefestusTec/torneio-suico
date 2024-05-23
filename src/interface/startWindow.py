@@ -32,6 +32,7 @@ class StartWindow(Gtk.Window):
         self.__main_grid.attach(self.__logo_image, 0, 0, 2, 1)
 
         self.__tournament_entry = Gtk.Entry(placeholder_text="Nome do Torneio")
+        self.__tournament_entry.connect("activate", self.__create_button_clicked)
         self.__main_grid.attach(self.__tournament_entry, 0, 1, 1, 1)
 
         self.__create_button = Gtk.Button(label="Criar Torneio")

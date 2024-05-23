@@ -19,25 +19,21 @@ class RoundWindow(Gtk.Window):
         self.__tournament_id = tournament_id
         self.__tournament = database_handler.get_tournament_by_id(tournament_id)
         self.__tournament_name = self.__tournament.name
-        self.__contestants_list = database_handler.get_tournament_contestants(
-            self.__tournament
-        )
         self.__round_count = self.__tournament.current_round
         self.__max_rounds = self.__tournament.rounds
         self.__pickle_path = f"persist/{self.__tournament_name}.pickle"
-
-        database_handler.set_setup_stage(self.__tournament, 2)
-
         self.__swiss_handler = SwissHandler()
         self.__swiss_handler.load_state(self.__pickle_path)
-
         self.__pairings_list = self.__swiss_handler.get_round_pairings(
             self.__round_count
         )
         self.__bye_contestant = self.__swiss_handler.get_bye_contestant()
         self.__swiss_handler.save_state(self.__pickle_path)
-
         self.__matches = self.__create_matches()
+
+        __must_scroll = len(self.__matches) > 10
+
+        database_handler.set_setup_stage(self.__tournament, 2)
 
         Gtk.Window.__init__(
             self,
@@ -45,8 +41,20 @@ class RoundWindow(Gtk.Window):
             border_width=10,
         )
 
+        self.__scroll = Gtk.ScrolledWindow()
+        self.__scroll.set_policy(
+            Gtk.PolicyType.NEVER,
+            Gtk.PolicyType.AUTOMATIC if __must_scroll else Gtk.PolicyType.NEVER,
+        )
+        if __must_scroll:
+            self.__scroll.set_min_content_height(500)
+        self.add(self.__scroll)
+
+        self.__viewport = Gtk.Viewport()
+        self.__scroll.add(self.__viewport)
+
         self.__main_grid = Gtk.Grid(column_spacing=10, row_spacing=5)
-        self.add(self.__main_grid)
+        self.__viewport.add(self.__main_grid)
 
         self.__tournament_title = Gtk.Label(
             label=f"<big>{self.__tournament_name}</big>",
@@ -217,13 +225,11 @@ class RoundWindow(Gtk.Window):
 
         for pair in self.__pairings_list:
             contestant1, contestant2 = pair.player_a, pair.player_b
-            print(f"Creating match between {contestant1} and {contestant2}")
             match = database_handler.create_match(
                 self.__tournament, contestant1, contestant2, self.__round_count
             )
             matches.append(match)
         if self.__bye_contestant:
-            print(f"Creating bye match for {self.__bye_contestant}")
             match = database_handler.create_match(
                 self.__tournament, self.__bye_contestant, None, self.__round_count
             )
