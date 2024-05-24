@@ -6,7 +6,7 @@ Gerenciador de Torneio Suiço para competições de robótica desenvolvido pela 
 
 ## Descrição
 
-O Torneio Suiço é um sistema de competição que permite que um grande número de participantes com um número pequeno e determinado de rodadas sem a necessidade de eliminar participantes. Segue o mesmo sistema de contagem de pontos do sistema todos contra todos, conhecido como Round robin, porém com as seguintes regras:
+O Torneio Suiço é um sistema de competição que permite um grande número de participantes com um número pequeno e determinado de rodadas sem a necessidade de eliminar participantes. Segue o mesmo sistema de contagem de pontos do sistema todos contra todos, conhecido como Round robin, porém com as seguintes regras:
 
 - Número pré-determinado de rodadas.
 - Dois participantes não se enfrentam mais que uma vez.
@@ -42,9 +42,9 @@ python3 src/main.py
 
 ## Desenvolvimento
 
-O Gerenciador de Torneio Suiço foi desenvolvido pela Associação de Pesquisa, Desenvolvimento e Tecnologia Hefestus. O projeto utiliza a linguagem de programação Python e a biblioteca gráfica GTK para a interface gráfica e é mantido por uma equipe de desenvolvedores voluntários e é de código aberto, sob a licença GPL-3.0.
+O Gerenciador de Torneio Suiço foi desenvolvido pela Associação de Pesquisa, Desenvolvimento e Tecnologia Hefestus. O projeto utiliza a linguagem de programação Python e a biblioteca gráfica GTK para a interface, é mantido por uma equipe de desenvolvedores voluntários e é de código aberto, sob a licença GPL-3.0.
 
-O código depende também de uma remificação biblioteca `Swiss` para a implementação do algoritmo de pareamento do torneio suíço, é uma biblioteca de código aberto, desenvolida por [HannesHaglund](https://github.com/HannesHaglund) sob licença MIT. O código fonte original da biblioteca, bem como sua licença pode ser encontrado no repositório [Swiss](https://github.com/HannesHaglund/Swiss).
+O código depende também de uma ramificação da biblioteca `Swiss` para a implementação do algoritmo de pareamento do torneio suíço, é uma biblioteca de código aberto, desenvolida por [HannesHaglund](https://github.com/HannesHaglund) sob licença MIT. O código fonte original da biblioteca, bem como sua licença pode ser encontrado no repositório [Swiss](https://github.com/HannesHaglund/Swiss).
 
 ## Contribuição
 
