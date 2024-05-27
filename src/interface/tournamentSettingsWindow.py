@@ -111,6 +111,18 @@ class TournamentSettingsWindow(Gtk.Window):
             dialog.destroy()
             return
 
+        if not self.__max_score_entry.get_text().isnumeric():
+            dialog = Gtk.MessageDialog(
+                parent=self,
+                flags=0,
+                type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                message_format="Pontuação máxima inválida.",
+            )
+            dialog.run()
+            dialog.destroy()
+            return
+
         confirmation_dialog = Gtk.MessageDialog(
             parent=self,
             flags=0,
