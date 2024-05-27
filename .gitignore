@@ -1,6 +1,10 @@
 # SQLite persistence
 persist
 
+# Pyinstaller
+dist
+build
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
