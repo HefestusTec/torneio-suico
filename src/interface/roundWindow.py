@@ -237,6 +237,7 @@ class RoundWindow(Gtk.Window):
         return matches
 
     def run(self) -> None:
+        self.set_icon_from_file("assets/coliseu.png")
         self.connect("destroy", Gtk.main_quit)
         self.show_all()
         Gtk.main()

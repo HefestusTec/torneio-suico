@@ -4,6 +4,7 @@ persist
 # Pyinstaller
 dist
 build
+*.spec
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

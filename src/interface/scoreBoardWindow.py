@@ -64,6 +64,7 @@ class ScoreBoardWindow(Gtk.Window):
         self.__scoreboard_tree.set_model(self.__get_scoreboard())
 
     def run(self) -> None:
+        self.set_icon_from_file("assets/coliseu.png")
         self.connect("destroy", Gtk.main_quit)
         self.show_all()
         Gtk.main()
