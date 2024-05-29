@@ -87,7 +87,7 @@ class StartWindow(Gtk.Window):
         response = confirmation_dialog.run()
         confirmation_dialog.destroy()
 
-        if response == Gtk.ResponseType.CANCEL:
+        if response != Gtk.ResponseType.OK:
             return
 
         try:

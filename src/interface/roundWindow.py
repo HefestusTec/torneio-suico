@@ -180,13 +180,13 @@ class RoundWindow(Gtk.Window):
             parent=self,
             flags=0,
             type=Gtk.MessageType.QUESTION,
-            buttons=Gtk.ButtonsType.YES_NO,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
             message_format=message,
         )
         response = confirmation_dialog.run()
         confirmation_dialog.destroy()
 
-        if response == Gtk.ResponseType.NO:
+        if response != Gtk.ResponseType.OK:
             return
 
         round_results = [

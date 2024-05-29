@@ -142,7 +142,7 @@ class RegisterWindow(Gtk.Window):
         response = confirmation_dialog.run()
         confirmation_dialog.destroy()
 
-        if response == Gtk.ResponseType.CANCEL:
+        if response != Gtk.ResponseType.OK:
             return
 
         pickle_path = f"persist/{self.__tournament_name}.pickle"

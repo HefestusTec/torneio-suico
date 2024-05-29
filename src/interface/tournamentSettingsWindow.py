@@ -123,18 +123,19 @@ class TournamentSettingsWindow(Gtk.Window):
             dialog.destroy()
             return
 
+        n_rounds = int(self.__rounds_entry.get_text())
         confirmation_dialog = Gtk.MessageDialog(
             parent=self,
             flags=0,
             type=Gtk.MessageType.QUESTION,
             buttons=Gtk.ButtonsType.OK_CANCEL,
-            message_format=f"Iniciar torneio com {self.__rounds_entry.get_text()} rodadas e {len(self.__contestants_list)} competidores?\nEssa ação não pode ser desfeita.",
+            message_format=f"Configurações do torneio:\n\n• {self.__rounds_entry.get_text()} rodada{'s' if n_rounds > 1 else '' }\n• {self.__max_score_entry.get_text()} pontos de pontuação máxima por rodada\n• {len(self.__contestants_list)} competidores\n\nDeseja iniciar o torneio?\nEssa ação não pode ser desfeita.",
         )
         response = confirmation_dialog.run()
 
         confirmation_dialog.destroy()
 
-        if response == Gtk.ResponseType.CANCEL:
+        if response != Gtk.ResponseType.OK:
             return
 
         database_handler.set_tournament_settings(
