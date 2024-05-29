@@ -98,34 +98,33 @@ class RoundWindow(Gtk.Window):
         self, i: int, contestant1, contestant2, contestant1_score, contestant2_score
     ):
         self.__main_grid.attach(Gtk.Label(label=contestant1.name), 0, i + 3, 1, 1)
-        __remove_points_button = Gtk.Button(label="-")
-        __remove_points_button.get_style_context().add_class("destructive-action")
-        __remove_points_button.connect(
+        __remove_points_button_1 = Gtk.Button(label="-")
+        __remove_points_button_1.get_style_context().add_class("destructive-action")
+        __remove_points_button_1.connect(
             "clicked", self.__remove_points_button_clicked, i, 0
         )
-        self.__main_grid.attach(__remove_points_button, 1, i + 3, 1, 1)
+        self.__main_grid.attach(__remove_points_button_1, 1, i + 3, 1, 1)
 
         __score_label = Gtk.Label(
-            label=f"<big>{contestant1_score}</big>", use_markup=True
+            label=f"<big>{contestant1_score if contestant2 is not None else self.__tournament.max_round_score}</big>",
+            use_markup=True,
         )
         self.__main_grid.attach(__score_label, 2, i + 3, 1, 1)
         self.__score_labels.append(__score_label)
 
-        __add_points_button = Gtk.Button(label="+")
-        __add_points_button.get_style_context().add_class("suggested-action")
-        __add_points_button.connect("clicked", self.__add_points_button_clicked, i, 0)
-        self.__main_grid.attach(__add_points_button, 3, i + 3, 1, 1)
+        __add_points_button_1 = Gtk.Button(label="+")
+        __add_points_button_1.get_style_context().add_class("suggested-action")
+        __add_points_button_1.connect("clicked", self.__add_points_button_clicked, i, 0)
+        self.__main_grid.attach(__add_points_button_1, 3, i + 3, 1, 1)
 
         self.__main_grid.attach(Gtk.Label(label="VS"), 4, i + 3, 1, 1)
 
-        __remove_points_button = Gtk.Button(label="-")
-        __remove_points_button.get_style_context().add_class("destructive-action")
-        if contestant2 is None:
-            __remove_points_button.set_sensitive(False)
-        __remove_points_button.connect(
+        __remove_points_button_2 = Gtk.Button(label="-")
+        __remove_points_button_2.get_style_context().add_class("destructive-action")
+        __remove_points_button_2.connect(
             "clicked", self.__remove_points_button_clicked, i, 1
         )
-        self.__main_grid.attach(__remove_points_button, 5, i + 3, 1, 1)
+        self.__main_grid.attach(__remove_points_button_2, 5, i + 3, 1, 1)
 
         __score_label = Gtk.Label(
             label=f"<big>{contestant2_score}</big>", use_markup=True
@@ -133,16 +132,26 @@ class RoundWindow(Gtk.Window):
         self.__main_grid.attach(__score_label, 6, i + 3, 1, 1)
         self.__score_labels.append(__score_label)
 
-        __add_points_button = Gtk.Button(label="+")
-        __add_points_button.get_style_context().add_class("suggested-action")
-        if contestant2 is None:
-            __add_points_button.set_sensitive(False)
-        __add_points_button.connect("clicked", self.__add_points_button_clicked, i, 1)
-        self.__main_grid.attach(__add_points_button, 7, i + 3, 1, 1)
+        __add_points_button_1 = Gtk.Button(label="+")
+        __add_points_button_1.get_style_context().add_class("suggested-action")
+        __add_points_button_1.connect("clicked", self.__add_points_button_clicked, i, 1)
+        self.__main_grid.attach(__add_points_button_1, 7, i + 3, 1, 1)
 
         self.__main_grid.attach(
             Gtk.Label(label=contestant2.name if contestant2 else "BYE"), 8, i + 3, 1, 1
         )
+
+        if contestant2 is None:
+            __add_points_button_1.set_sensitive(False)
+            __remove_points_button_1.set_sensitive(False)
+            __add_points_button_1.set_sensitive(False)
+            __remove_points_button_2.set_sensitive(False)
+
+            database_handler.set_match_result(
+                self.__matches[i],
+                int(self.__score_labels[i * 2].get_text()),
+                int(self.__score_labels[i * 2 + 1].get_text()),
+            )
 
     def __remove_points_button_clicked(
         self, button: Gtk.Button, i: int, j: int
