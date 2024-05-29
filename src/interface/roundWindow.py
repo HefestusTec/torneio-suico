@@ -132,10 +132,10 @@ class RoundWindow(Gtk.Window):
         self.__main_grid.attach(__score_label, 6, i + 3, 1, 1)
         self.__score_labels.append(__score_label)
 
-        __add_points_button_1 = Gtk.Button(label="+")
-        __add_points_button_1.get_style_context().add_class("suggested-action")
-        __add_points_button_1.connect("clicked", self.__add_points_button_clicked, i, 1)
-        self.__main_grid.attach(__add_points_button_1, 7, i + 3, 1, 1)
+        __add_points_button_2 = Gtk.Button(label="+")
+        __add_points_button_2.get_style_context().add_class("suggested-action")
+        __add_points_button_2.connect("clicked", self.__add_points_button_clicked, i, 1)
+        self.__main_grid.attach(__add_points_button_2, 7, i + 3, 1, 1)
 
         self.__main_grid.attach(
             Gtk.Label(label=contestant2.name if contestant2 else "BYE"), 8, i + 3, 1, 1
@@ -144,7 +144,7 @@ class RoundWindow(Gtk.Window):
         if contestant2 is None:
             __add_points_button_1.set_sensitive(False)
             __remove_points_button_1.set_sensitive(False)
-            __add_points_button_1.set_sensitive(False)
+            __add_points_button_2.set_sensitive(False)
             __remove_points_button_2.set_sensitive(False)
 
             database_handler.set_match_result(
