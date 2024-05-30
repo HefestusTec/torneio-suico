@@ -117,9 +117,9 @@ class RoundWindow(Gtk.Window):
         __add_points_button_1.connect("clicked", self.__add_points_button_clicked, i, 0)
         self.__main_grid.attach(__add_points_button_1, 3, i + 3, 1, 1)
 
-        self.__main_grid.attach(Gtk.Label(label="|"), 4, i + 3, 1, 1)
+        self.__main_grid.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 4, i + 3, 1, 1)
         self.__main_grid.attach(Gtk.Label(label="VS"), 5, i + 3, 1, 1)
-        self.__main_grid.attach(Gtk.Label(label="|"), 6, i + 3, 1, 1)
+        self.__main_grid.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 6, i + 3, 1, 1)
 
         __remove_points_button_2 = Gtk.Button(label="-")
         __remove_points_button_2.get_style_context().add_class("destructive-action")
