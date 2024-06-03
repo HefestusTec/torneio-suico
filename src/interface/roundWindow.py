@@ -41,20 +41,8 @@ class RoundWindow(Gtk.Window):
             border_width=10,
         )
 
-        self.__scroll = Gtk.ScrolledWindow()
-        self.__scroll.set_policy(
-            Gtk.PolicyType.NEVER,
-            Gtk.PolicyType.AUTOMATIC if __must_scroll else Gtk.PolicyType.NEVER,
-        )
-        if __must_scroll:
-            self.__scroll.set_min_content_height(500)
-        self.add(self.__scroll)
-
-        self.__viewport = Gtk.Viewport()
-        self.__scroll.add(self.__viewport)
-
         self.__main_grid = Gtk.Grid(column_spacing=10, row_spacing=5)
-        self.__viewport.add(self.__main_grid)
+        self.add(self.__main_grid)
 
         self.__tournament_title = Gtk.Label(
             label=f"<big>{self.__tournament_name}</big>",
@@ -70,6 +58,17 @@ class RoundWindow(Gtk.Window):
         self.__title_spacer_label = Gtk.Label()
         self.__main_grid.attach(self.__title_spacer_label, 0, 2, 11, 1)
 
+        self.__scrollable_matches_grid = Gtk.ScrolledWindow()
+        self.__scrollable_matches_grid.set_policy(
+            Gtk.PolicyType.NEVER,
+            Gtk.PolicyType.AUTOMATIC if __must_scroll else Gtk.PolicyType.NEVER,
+        )
+        if __must_scroll:
+            self.__scrollable_matches_grid.set_min_content_height(345)
+        self.__main_grid.attach(self.__scrollable_matches_grid, 0, 3, 11, 1)
+
+        self.__matches_grid = Gtk.Grid(column_spacing=10, row_spacing=5)
+
         self.__score_labels = []
 
         for i, match in enumerate(self.__matches):
@@ -80,6 +79,8 @@ class RoundWindow(Gtk.Window):
                 match.contestant1_score,
                 match.contestant2_score,
             )
+
+        self.__scrollable_matches_grid.add(self.__matches_grid)
 
         self.__spacer_label = Gtk.Label()
         self.__main_grid.attach(self.__spacer_label, 0, i + 5, 11, 1)
@@ -97,50 +98,54 @@ class RoundWindow(Gtk.Window):
     def __render_match(
         self, i: int, contestant1, contestant2, contestant1_score, contestant2_score
     ):
-        self.__main_grid.attach(Gtk.Label(label=contestant1.name), 0, i + 3, 1, 1)
+        self.__matches_grid.attach(Gtk.Label(label=contestant1.name), 0, i, 1, 1)
         __remove_points_button_1 = Gtk.Button(label="-")
         __remove_points_button_1.get_style_context().add_class("destructive-action")
         __remove_points_button_1.connect(
             "clicked", self.__remove_points_button_clicked, i, 0
         )
-        self.__main_grid.attach(__remove_points_button_1, 1, i + 3, 1, 1)
+        self.__matches_grid.attach(__remove_points_button_1, 1, i, 1, 1)
 
         __score_label = Gtk.Label(
             label=f"<big>{contestant1_score if contestant2 is not None else self.__tournament.max_round_score}</big>",
             use_markup=True,
         )
-        self.__main_grid.attach(__score_label, 2, i + 3, 1, 1)
+        self.__matches_grid.attach(__score_label, 2, i, 1, 1)
         self.__score_labels.append(__score_label)
 
         __add_points_button_1 = Gtk.Button(label="+")
         __add_points_button_1.get_style_context().add_class("suggested-action")
         __add_points_button_1.connect("clicked", self.__add_points_button_clicked, i, 0)
-        self.__main_grid.attach(__add_points_button_1, 3, i + 3, 1, 1)
+        self.__matches_grid.attach(__add_points_button_1, 3, i, 1, 1)
 
-        self.__main_grid.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 4, i + 3, 1, 1)
-        self.__main_grid.attach(Gtk.Label(label="VS"), 5, i + 3, 1, 1)
-        self.__main_grid.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 6, i + 3, 1, 1)
+        self.__matches_grid.attach(
+            Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 4, i, 1, 1
+        )
+        self.__matches_grid.attach(Gtk.Label(label="VS"), 5, i, 1, 1)
+        self.__matches_grid.attach(
+            Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 6, i, 1, 1
+        )
 
         __remove_points_button_2 = Gtk.Button(label="-")
         __remove_points_button_2.get_style_context().add_class("destructive-action")
         __remove_points_button_2.connect(
             "clicked", self.__remove_points_button_clicked, i, 1
         )
-        self.__main_grid.attach(__remove_points_button_2, 7, i + 3, 1, 1)
+        self.__matches_grid.attach(__remove_points_button_2, 7, i, 1, 1)
 
         __score_label = Gtk.Label(
             label=f"<big>{contestant2_score}</big>", use_markup=True
         )
-        self.__main_grid.attach(__score_label, 8, i + 3, 1, 1)
+        self.__matches_grid.attach(__score_label, 8, i, 1, 1)
         self.__score_labels.append(__score_label)
 
         __add_points_button_2 = Gtk.Button(label="+")
         __add_points_button_2.get_style_context().add_class("suggested-action")
         __add_points_button_2.connect("clicked", self.__add_points_button_clicked, i, 1)
-        self.__main_grid.attach(__add_points_button_2, 9, i + 3, 1, 1)
+        self.__matches_grid.attach(__add_points_button_2, 9, i, 1, 1)
 
-        self.__main_grid.attach(
-            Gtk.Label(label=contestant2.name if contestant2 else "BYE"), 10, i + 3, 1, 1
+        self.__matches_grid.attach(
+            Gtk.Label(label=contestant2.name if contestant2 else "BYE"), 10, i, 1, 1
         )
 
         if contestant2 is None:
