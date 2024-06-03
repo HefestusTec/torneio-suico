@@ -2,6 +2,7 @@ import pickle
 
 from swiss.match_log import MatchLog
 from swiss.pairing_strategies import min_cost
+from swiss.shared_functions import bye_dummy_player_name
 
 
 class SwissHandler:
@@ -38,7 +39,8 @@ class SwissHandler:
     def get_scoreboard(self) -> list:
         scoreboard = [
             (i + 1, contestant, self.match_log.player_score(contestant))
-            for i, contestant in enumerate(self.match_log.ranking()[:-1])
+            for i, contestant in enumerate(self.match_log.ranking())
+            if contestant != bye_dummy_player_name()
         ]
         return scoreboard
 

@@ -4,6 +4,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
 from interface import database_handler
+from swissHandler import SwissHandler
 
 
 class ScoreBoardWindow(Gtk.Window):
@@ -12,6 +13,9 @@ class ScoreBoardWindow(Gtk.Window):
 
         self.__tournament = database_handler.get_tournament_by_id(tournament_id)
         self.__tournament_name = self.__tournament.name
+        self.__pickle_path = f"persist/{self.__tournament_name}.pickle"
+        self.__swiss_handler = SwissHandler()
+        self.__swiss_handler.load_state(self.__pickle_path)
 
         database_handler.set_setup_stage(self.__tournament, 3)
 
@@ -47,6 +51,7 @@ class ScoreBoardWindow(Gtk.Window):
         ranking_column = Gtk.TreeViewColumn("Posição", cellrenderertext, text=0)
         self.__scoreboard_tree.append_column(ranking_column)
         column_text = Gtk.TreeViewColumn("Nome do Competidor", cellrenderertext, text=1)
+        column_text.set_min_width(340)
         self.__scoreboard_tree.append_column(column_text)
         column_score = Gtk.TreeViewColumn("Pontuação", cellrenderertext, text=2)
         self.__scoreboard_tree.append_column(column_score)
@@ -55,9 +60,9 @@ class ScoreBoardWindow(Gtk.Window):
 
     def __get_scoreboard(self) -> Gtk.ListStore:
         store = Gtk.ListStore(int, str, int)
-        scoreboard = database_handler.get_scoreboard(self.__tournament)
-        for i, (contestant, score) in enumerate(scoreboard):
-            store.append([i + 1, contestant, score])
+        scoreboard = self.__swiss_handler.get_scoreboard()
+        for i, contestant, score in scoreboard:
+            store.append([i, contestant, score])
         return store
 
     def __update_scoreboard(self):
