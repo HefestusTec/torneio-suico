@@ -30,6 +30,7 @@ class RoundWindow(Gtk.Window):
         self.__bye_contestant = self.__swiss_handler.get_bye_contestant()
         self.__swiss_handler.save_state(self.__pickle_path)
         self.__matches = self.__create_matches()
+        self.__score_entry_chars = len(str(self.__tournament.max_round_score))
 
         __must_scroll = len(self.__matches) > 10
 
@@ -69,7 +70,7 @@ class RoundWindow(Gtk.Window):
 
         self.__matches_grid = Gtk.Grid(column_spacing=10, row_spacing=5)
 
-        self.__score_labels = []
+        self.__score_entries = []
 
         for i, match in enumerate(self.__matches):
             self.__render_match(
@@ -106,12 +107,15 @@ class RoundWindow(Gtk.Window):
         )
         self.__matches_grid.attach(__remove_points_button_1, 1, i, 1, 1)
 
-        __score_label = Gtk.Label(
-            label=f"<big>{contestant1_score if contestant2 is not None else self.__tournament.max_round_score}</big>",
-            use_markup=True,
-        )
-        self.__matches_grid.attach(__score_label, 2, i, 1, 1)
-        self.__score_labels.append(__score_label)
+        __score_entry_1 = Gtk.Entry()
+        __score_entry_1.set_text(str(contestant1_score))
+        __score_entry_1.set_width_chars(self.__score_entry_chars)
+        __score_entry_1.set_alignment(0.5)
+        __score_entry_1.set_input_purpose(Gtk.InputPurpose.NUMBER)
+        __score_entry_1.connect("changed", self.__score_entry_changed, i)
+
+        self.__matches_grid.attach(__score_entry_1, 2, i, 1, 1)
+        self.__score_entries.append(__score_entry_1)
 
         __add_points_button_1 = Gtk.Button(label="+")
         __add_points_button_1.get_style_context().add_class("suggested-action")
@@ -133,11 +137,15 @@ class RoundWindow(Gtk.Window):
         )
         self.__matches_grid.attach(__remove_points_button_2, 7, i, 1, 1)
 
-        __score_label = Gtk.Label(
-            label=f"<big>{contestant2_score}</big>", use_markup=True
-        )
-        self.__matches_grid.attach(__score_label, 8, i, 1, 1)
-        self.__score_labels.append(__score_label)
+        __score_entry_2 = Gtk.Entry()
+        __score_entry_2.set_text(str(contestant2_score))
+        __score_entry_2.set_width_chars(self.__score_entry_chars)
+        __score_entry_2.set_alignment(0.5)
+        __score_entry_2.set_input_purpose(Gtk.InputPurpose.NUMBER)
+        __score_entry_2.connect("changed", self.__score_entry_changed, i)
+
+        self.__matches_grid.attach(__score_entry_2, 8, i, 1, 1)
+        self.__score_entries.append(__score_entry_2)
 
         __add_points_button_2 = Gtk.Button(label="+")
         __add_points_button_2.get_style_context().add_class("suggested-action")
@@ -153,37 +161,68 @@ class RoundWindow(Gtk.Window):
             __remove_points_button_1.set_sensitive(False)
             __add_points_button_2.set_sensitive(False)
             __remove_points_button_2.set_sensitive(False)
+            __score_entry_1.set_sensitive(False)
+            __score_entry_2.set_sensitive(False)
 
             database_handler.set_match_result(
                 self.__matches[i],
-                int(self.__score_labels[i * 2].get_text()),
-                int(self.__score_labels[i * 2 + 1].get_text()),
+                int(self.__score_entries[i * 2].get_text()),
+                int(self.__score_entries[i * 2 + 1].get_text()),
             )
 
     def __remove_points_button_clicked(
         self, button: Gtk.Button, i: int, j: int
     ) -> None:
-        score = int(self.__score_labels[i * 2 + j].get_text())
+        entry = self.__score_entries[i * 2 + j]
+        if entry.get_text() == "":
+            entry.set_text("0")
+            return
+
+        score = int(entry.get_text())
         if score == 0:
             return
         score -= 1
-        self.__score_labels[i * 2 + j].set_markup(f"<big>{score}</big>")
+        entry.set_text(str(score))
         database_handler.set_match_result(
             self.__matches[i],
-            int(self.__score_labels[i * 2].get_text()),
-            int(self.__score_labels[i * 2 + 1].get_text()),
+            int(self.__score_entries[i * 2].get_text()),
+            int(self.__score_entries[i * 2 + 1].get_text()),
         )
 
     def __add_points_button_clicked(self, button: Gtk.Button, i: int, j: int) -> None:
-        score = int(self.__score_labels[i * 2 + j].get_text())
+        entry = self.__score_entries[i * 2 + j]
+        if entry.get_text() == "":
+            entry.set_text("0")
+
+        score = int(entry.get_text())
         if score == self.__tournament.max_round_score:
             return
         score += 1
-        self.__score_labels[i * 2 + j].set_markup(f"<big>{score}</big>")
+        entry.set_text(str(score))
         database_handler.set_match_result(
             self.__matches[i],
-            int(self.__score_labels[i * 2].get_text()),
-            int(self.__score_labels[i * 2 + 1].get_text()),
+            int(self.__score_entries[i * 2].get_text()),
+            int(self.__score_entries[i * 2 + 1].get_text()),
+        )
+
+    def __score_entry_changed(self, entry: Gtk.Entry, i: int) -> None:
+        score = entry.get_text()
+        if not score.isdigit():
+            entry.set_text("")
+            return
+        score = int(score)
+        if score < 0:
+            entry.set_text("0")
+            return
+        if score > self.__tournament.max_round_score:
+            entry.set_text(str(self.__tournament.max_round_score))
+            return
+        entry.set_text(str(score))
+
+        database_handler.set_match_result(
+            self.__matches[i],
+            int(self.__score_entries[i * 2].get_text()),
+            int(self.__score_entries[i * 2 + 1].get_text()),
         )
 
     def __continue_button_clicked(self, button: Gtk.Button) -> None:
@@ -209,15 +248,23 @@ class RoundWindow(Gtk.Window):
             (
                 self.__pairings_list[i].player_a,
                 self.__pairings_list[i].player_b,
-                int(self.__score_labels[i * 2].get_text()),
-                int(self.__score_labels[i * 2 + 1].get_text()),
+                int(
+                    self.__score_entries[i * 2].get_text()
+                    if self.__score_entries[i * 2].get_text() != ""
+                    else "0"
+                ),
+                int(
+                    self.__score_entries[i * 2 + 1].get_text()
+                    if self.__score_entries[i * 2 + 1].get_text() != ""
+                    else "0"
+                ),
             )
             for i in range(len(self.__pairings_list))
         ]
 
         self.__swiss_handler.add_round_results(round_results)
         self.__swiss_handler.add_bye_result(
-            self.__bye_contestant, int(self.__score_labels[-1].get_text())
+            self.__bye_contestant, int(self.__score_entries[-1].get_text())
         )
         self.__swiss_handler.save_state(self.__pickle_path)
 
@@ -249,6 +296,7 @@ class RoundWindow(Gtk.Window):
             match = database_handler.create_match(
                 self.__tournament, self.__bye_contestant, None, self.__round_count
             )
+            match.contestant1_score = self.__tournament.max_round_score
             matches.append(match)
         return matches
 
