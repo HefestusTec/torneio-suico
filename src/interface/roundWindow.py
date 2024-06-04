@@ -66,7 +66,7 @@ class RoundWindow(Gtk.Window):
             Gtk.PolicyType.AUTOMATIC if __must_scroll else Gtk.PolicyType.NEVER,
         )
         if __must_scroll:
-            self.__scrollable_matches_grid.set_min_content_height(345)
+            self.__scrollable_matches_grid.set_min_content_height(385)
         self.__main_grid.attach(self.__scrollable_matches_grid, 0, 3, 11, 1)
 
         self.__matches_grid = Gtk.Grid(column_spacing=10, row_spacing=5)
