@@ -4,6 +4,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
 from interface import database_handler
+from interface.debouncedEntry import DebouncedEntry
 from interface.scoreBoardWindow import ScoreBoardWindow
 from swissHandler import SwissHandler
 
@@ -107,12 +108,15 @@ class RoundWindow(Gtk.Window):
         )
         self.__matches_grid.attach(__remove_points_button_1, 1, i, 1, 1)
 
-        __score_entry_1 = Gtk.Entry()
-        __score_entry_1.set_text(str(contestant1_score))
+        __score_entry_1 = DebouncedEntry(
+            text=str(contestant1_score),
+            on_changed_callback=self.__score_entry_changed,
+            timeout=500,
+        )
         __score_entry_1.set_width_chars(self.__score_entry_chars)
         __score_entry_1.set_alignment(0.5)
         __score_entry_1.set_input_purpose(Gtk.InputPurpose.NUMBER)
-        __score_entry_1.connect("changed", self.__score_entry_changed, i)
+        __score_entry_1.connect("debounced", self.__score_entry_debounced, i)
 
         self.__matches_grid.attach(__score_entry_1, 2, i, 1, 1)
         self.__score_entries.append(__score_entry_1)
@@ -137,12 +141,15 @@ class RoundWindow(Gtk.Window):
         )
         self.__matches_grid.attach(__remove_points_button_2, 7, i, 1, 1)
 
-        __score_entry_2 = Gtk.Entry()
-        __score_entry_2.set_text(str(contestant2_score))
+        __score_entry_2 = DebouncedEntry(
+            text=str(contestant2_score),
+            on_changed_callback=self.__score_entry_changed,
+            timeout=500,
+        )
         __score_entry_2.set_width_chars(self.__score_entry_chars)
         __score_entry_2.set_alignment(0.5)
         __score_entry_2.set_input_purpose(Gtk.InputPurpose.NUMBER)
-        __score_entry_2.connect("changed", self.__score_entry_changed, i)
+        __score_entry_2.connect("debounced", self.__score_entry_debounced, i)
 
         self.__matches_grid.attach(__score_entry_2, 8, i, 1, 1)
         self.__score_entries.append(__score_entry_2)
@@ -183,11 +190,6 @@ class RoundWindow(Gtk.Window):
             return
         score -= 1
         entry.set_text(str(score))
-        database_handler.set_match_result(
-            self.__matches[i],
-            int(self.__score_entries[i * 2].get_text()),
-            int(self.__score_entries[i * 2 + 1].get_text()),
-        )
 
     def __add_points_button_clicked(self, button: Gtk.Button, i: int, j: int) -> None:
         entry = self.__score_entries[i * 2 + j]
@@ -199,13 +201,8 @@ class RoundWindow(Gtk.Window):
             return
         score += 1
         entry.set_text(str(score))
-        database_handler.set_match_result(
-            self.__matches[i],
-            int(self.__score_entries[i * 2].get_text()),
-            int(self.__score_entries[i * 2 + 1].get_text()),
-        )
 
-    def __score_entry_changed(self, entry: Gtk.Entry, i: int) -> None:
+    def __score_entry_changed(self, entry: Gtk.Entry) -> None:
         score = entry.get_text()
         if not score.isdigit():
             entry.set_text("")
@@ -219,6 +216,11 @@ class RoundWindow(Gtk.Window):
             return
         entry.set_text(str(score))
 
+    def __score_entry_debounced(self, entry: Gtk.Entry, i: int) -> None:
+        score = entry.get_text()
+        if not score.isdigit():
+            entry.set_text("0")
+            return
         database_handler.set_match_result(
             self.__matches[i],
             int(self.__score_entries[i * 2].get_text()),
