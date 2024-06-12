@@ -36,37 +36,43 @@ class TournamentSettingsWindow(Gtk.Window):
             label=f"<big>{self.__tournament_name}</big>",
             use_markup=True,
         )
-        self.__main_grid.attach(self.__tournament_title, 0, 0, 1, 1)
+        self.__main_grid.attach(self.__tournament_title, 0, 0, 5, 1)
 
-        self.__main_title = Gtk.Label(
+        self.__rounds_label = Gtk.Label(
             label=f"Definir Número de Rodadas",
         )
-        self.__main_grid.attach(self.__main_title, 0, 1, 1, 1)
+        self.__rounds_label.set_halign(Gtk.Align.START)
+        self.__main_grid.attach(self.__rounds_label, 0, 1, 5, 1)
 
         self.__rounds_entry = Gtk.Entry(
-            placeholder_text=f"({self.__min_rounds}-{self.__max_rounds})"
+            placeholder_text=f"({self.__min_rounds}-{self.__max_rounds})", hexpand=True
         )
         self.__rounds_entry.set_input_purpose(Gtk.InputPurpose.NUMBER)
         self.__rounds_entry.connect("activate", self.__rounds_entry_activated)
-        self.__main_grid.attach(self.__rounds_entry, 0, 2, 1, 1)
+        self.__main_grid.attach(self.__rounds_entry, 0, 2, 5, 1)
 
         self.__max_score_label = Gtk.Label(
             label=f"Definir Pontuação Máxima por Rodada",
         )
-        self.__main_grid.attach(self.__max_score_label, 0, 3, 1, 1)
+        self.__max_score_label.set_halign(Gtk.Align.START)
+        self.__main_grid.attach(self.__max_score_label, 0, 3, 5, 1)
 
-        self.__max_score_entry = Gtk.Entry(placeholder_text="Pontuação Máxima")
+        self.__max_score_entry = Gtk.Entry(
+            placeholder_text="Pontuação Máxima", hexpand=True
+        )
         self.__max_score_entry.set_input_purpose(Gtk.InputPurpose.NUMBER)
         self.__max_score_entry.connect("activate", self.__start_button_clicked)
-        self.__main_grid.attach(self.__max_score_entry, 0, 4, 1, 1)
+        self.__main_grid.attach(self.__max_score_entry, 0, 4, 5, 1)
 
         self.__start_button = Gtk.Button(label="Iniciar Torneio")
         self.__start_button.get_style_context().add_class("suggested-action")
         self.__start_button.connect("clicked", self.__start_button_clicked)
-        self.__main_grid.attach(self.__start_button, 0, 5, 1, 1)
+        self.__main_grid.attach(self.__start_button, 2, 5, 1, 1)
 
         self.__rounds_entry.connect("changed", self.__rounds_entry_changed)
         self.__max_score_entry.connect("changed", self.__max_score_entry_changed)
+
+        self.__start_button.grab_focus()
 
     def __rounds_entry_changed(self, entry: Gtk.Entry) -> None:
         self.__min_rounds = 1 + len(self.__contestants_list) % 2

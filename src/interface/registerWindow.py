@@ -26,32 +26,35 @@ class RegisterWindow(Gtk.Window):
         )
 
         self.__main_grid = Gtk.Grid(column_spacing=10, row_spacing=10)
+        self.__main_grid.set_column_homogeneous(False)
         self.add(self.__main_grid)
 
         self.__tournament_title = Gtk.Label(
             label=f"<big>{self.__tournament_name}</big>",
             use_markup=True,
         )
-        self.__main_grid.attach(self.__tournament_title, 0, 0, 4, 1)
+        self.__main_grid.attach(self.__tournament_title, 0, 0, 5, 1)
 
         self.__register_label = Gtk.Label(
             label=f"Registrar Competidores",
         )
-        self.__main_grid.attach(self.__register_label, 0, 1, 4, 1)
+        self.__main_grid.attach(self.__register_label, 0, 1, 5, 1)
 
-        self.__contestant_entry = Gtk.Entry(placeholder_text="Nome do Competidor")
+        self.__contestant_entry = Gtk.Entry(
+            placeholder_text="Nome do Competidor", hexpand=True
+        )
         self.__contestant_entry.connect("activate", self.__register_button_clicked)
-        self.__main_grid.attach(self.__contestant_entry, 0, 2, 3, 1)
+        self.__main_grid.attach(self.__contestant_entry, 0, 2, 4, 1)
 
         self.__register_button = Gtk.Button(label="Adicionar")
         self.__register_button.get_style_context().add_class("suggested-action")
         self.__register_button.connect("clicked", self.__register_button_clicked)
-        self.__main_grid.attach(self.__register_button, 3, 2, 1, 1)
+        self.__main_grid.attach(self.__register_button, 4, 2, 1, 1)
 
-        self.__contestants_scroll = Gtk.ScrolledWindow()
+        self.__contestants_scroll = Gtk.ScrolledWindow(expand=True)
         self.__contestants_scroll.set_min_content_height(200)
         self.__contestants_scroll.set_min_content_width(500)
-        self.__main_grid.attach(self.__contestants_scroll, 0, 3, 4, 1)
+        self.__main_grid.attach(self.__contestants_scroll, 0, 3, 5, 1)
 
         self.__contestants_tree = Gtk.TreeView(self.__get_contestants())
         self.__contestants_tree.set_headers_visible(False)
@@ -75,9 +78,11 @@ class RegisterWindow(Gtk.Window):
 
         self.__continue_button = Gtk.Button(label="Avançar")
         self.__continue_button.connect("clicked", self.__continue_button_clicked)
-        self.__main_grid.attach(self.__continue_button, 3, 4, 1, 1)
+        self.__main_grid.attach(self.__continue_button, 4, 4, 1, 1)
 
         self.__update_contestants_list()
+
+        self.__register_button.grab_focus()
 
     def __get_contestants(self) -> Gtk.ListStore:
         l = Gtk.ListStore(int, str)

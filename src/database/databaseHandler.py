@@ -57,12 +57,6 @@ class DatabaseHandler:
         tournament.contestants.remove(contestant)
         contestant.delete_instance()
 
-    def get_contestants_by_tournament(self, tournament_id):
-        tournament = Tournament.get(Tournament.id == tournament_id)
-        return [
-            [contestant.id, contestant.name] for contestant in tournament.contestants
-        ]
-
     def create_match(self, tournament, contestant1_name, contestant2_name, round):
         contestant1 = tournament.contestants.where(
             Contestant.name == contestant1_name
@@ -95,28 +89,3 @@ class DatabaseHandler:
             return tournament.matches.where(Match.round == round)
         except Exception:
             return []
-
-    def get_round_results(self, tournament, round):
-        return [
-            [
-                match.contestant1.name,
-                match.contestant2.name,
-                match.contestant1_score,
-                match.contestant2_score,
-            ]
-            for match in tournament.matches.where(Match.round == round)
-        ]
-
-    def get_scoreboard(self, tournament):
-        scoreboard = []
-
-        for contestant in tournament.contestants:
-            score = 0
-            for match in contestant.matches_as_contestant1:
-                score += match.contestant1_score
-            for match in contestant.matches_as_contestant2:
-                score += match.contestant2_score
-            scoreboard.append([contestant.name, score])
-
-        scoreboard.sort(key=lambda x: x[1], reverse=True)
-        return scoreboard

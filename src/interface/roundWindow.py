@@ -60,7 +60,7 @@ class RoundWindow(Gtk.Window):
         self.__title_spacer_label = Gtk.Label()
         self.__main_grid.attach(self.__title_spacer_label, 0, 2, 11, 1)
 
-        self.__scrollable_matches_grid = Gtk.ScrolledWindow()
+        self.__scrollable_matches_grid = Gtk.ScrolledWindow(expand=True)
         self.__scrollable_matches_grid.set_policy(
             Gtk.PolicyType.NEVER,
             Gtk.PolicyType.AUTOMATIC if __must_scroll else Gtk.PolicyType.NEVER,
@@ -92,7 +92,7 @@ class RoundWindow(Gtk.Window):
             if self.__round_count < self.__max_rounds
             else "Finalizar Torneio"
         )
-        self.__continue_button = Gtk.Button(label=continue_label)
+        self.__continue_button = Gtk.Button(label=continue_label, hexpand=True)
         self.__continue_button.connect("clicked", self.__continue_button_clicked)
         self.__continue_button.get_style_context().add_class("suggested-action")
         self.__main_grid.attach(self.__continue_button, 0, i + 6, 11, 1)
@@ -100,7 +100,9 @@ class RoundWindow(Gtk.Window):
     def __render_match(
         self, i: int, contestant1, contestant2, contestant1_score, contestant2_score
     ):
-        self.__matches_grid.attach(Gtk.Label(label=contestant1.name), 0, i, 1, 1)
+        self.__matches_grid.attach(
+            Gtk.Label(label=contestant1.name, hexpand=True), 0, i, 1, 1
+        )
         __remove_points_button_1 = Gtk.Button(label="-")
         __remove_points_button_1.get_style_context().add_class("destructive-action")
         __remove_points_button_1.connect(
@@ -112,6 +114,7 @@ class RoundWindow(Gtk.Window):
             text=str(contestant1_score),
             on_changed_callback=self.__score_entry_changed,
             timeout=500,
+            hexpand=True,
         )
         __score_entry_1.set_width_chars(self.__score_entry_chars)
         __score_entry_1.set_alignment(0.5)
@@ -129,7 +132,7 @@ class RoundWindow(Gtk.Window):
         self.__matches_grid.attach(
             Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 4, i, 1, 1
         )
-        self.__matches_grid.attach(Gtk.Label(label="VS"), 5, i, 1, 1)
+        self.__matches_grid.attach(Gtk.Label(label="VS", hexpand=True), 5, i, 1, 1)
         self.__matches_grid.attach(
             Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 6, i, 1, 1
         )
@@ -145,6 +148,7 @@ class RoundWindow(Gtk.Window):
             text=str(contestant2_score),
             on_changed_callback=self.__score_entry_changed,
             timeout=500,
+            hexpand=True,
         )
         __score_entry_2.set_width_chars(self.__score_entry_chars)
         __score_entry_2.set_alignment(0.5)
@@ -160,7 +164,11 @@ class RoundWindow(Gtk.Window):
         self.__matches_grid.attach(__add_points_button_2, 9, i, 1, 1)
 
         self.__matches_grid.attach(
-            Gtk.Label(label=contestant2.name if contestant2 else "BYE"), 10, i, 1, 1
+            Gtk.Label(label=contestant2.name if contestant2 else "BYE", hexpand=True),
+            10,
+            i,
+            1,
+            1,
         )
 
         if contestant2 is None:

@@ -2,6 +2,7 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("GdkPixbuf", "2.0")
+
 from gi.repository import GdkPixbuf, Gtk
 from peewee import IntegrityError
 
@@ -29,29 +30,36 @@ class StartWindow(Gtk.Window):
             __image_height, __image_width, 1
         )
         self.__logo_image = Gtk.Image.new_from_pixbuf(__pixbuf)
-        self.__main_grid.attach(self.__logo_image, 1, 0, 2, 1)
+        self.__logo_image.set_hexpand(True)  # Set horizontal expand property
+        self.__logo_image.set_vexpand(True)  # Set vertical expand property
+        self.__main_grid.attach(self.__logo_image, 0, 0, 5, 1)
 
-        self.__tournament_entry = Gtk.Entry(placeholder_text="Nome do Torneio")
+        self.__tournament_entry = Gtk.Entry(
+            placeholder_text="Nome do Torneio", hexpand=True
+        )
         self.__tournament_entry.connect("activate", self.__create_button_clicked)
-        self.__main_grid.attach(self.__tournament_entry, 0, 1, 2, 1)
+        self.__main_grid.attach(self.__tournament_entry, 0, 1, 4, 1)
 
         self.__create_button = Gtk.Button(label="Criar Torneio")
         self.__create_button.get_style_context().add_class("suggested-action")
         self.__create_button.connect("clicked", self.__create_button_clicked)
-        self.__main_grid.attach(self.__create_button, 2, 1, 2, 1)
+        self.__main_grid.attach(self.__create_button, 4, 1, 1, 1)
 
         self.__tournaments_combo = Gtk.ComboBox.new_with_model(self.__get_tournaments())
         __renderer_text = Gtk.CellRendererText()
+        self.__tournaments_combo.set_hexpand(True)
         self.__tournaments_combo.pack_start(__renderer_text, True)
         self.__tournaments_combo.add_attribute(__renderer_text, "text", 1)
         self.__tournaments_combo.set_active(0)
         self.__tournaments_combo.connect("changed", self.__tournaments_combo_changed)
-        self.__main_grid.attach(self.__tournaments_combo, 0, 2, 2, 1)
+        self.__main_grid.attach(self.__tournaments_combo, 0, 2, 4, 1)
 
         self.__load_button = Gtk.Button(label="Carregar Torneio")
         self.__load_button.connect("clicked", self.__load_button_clicked)
         self.__load_button.set_sensitive(False)
-        self.__main_grid.attach(self.__load_button, 2, 2, 2, 1)
+        self.__main_grid.attach(self.__load_button, 4, 2, 1, 1)
+
+        self.__create_button.grab_focus()
 
     def __get_tournaments(self):
         l = Gtk.ListStore(int, str)

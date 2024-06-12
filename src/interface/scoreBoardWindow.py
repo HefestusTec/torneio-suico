@@ -39,7 +39,7 @@ class ScoreBoardWindow(Gtk.Window):
         )
         self.__main_grid.attach(self.__scoreboard_label, 0, 1, 4, 1)
 
-        self.__scoreboard_scroll = Gtk.ScrolledWindow()
+        self.__scoreboard_scroll = Gtk.ScrolledWindow(expand=True)
         self.__scoreboard_scroll.set_min_content_height(200)
         self.__scoreboard_scroll.set_min_content_width(500)
         self.__main_grid.attach(self.__scoreboard_scroll, 0, 2, 4, 1)
@@ -50,9 +50,9 @@ class ScoreBoardWindow(Gtk.Window):
         cellrenderertext = Gtk.CellRendererText()
         ranking_column = Gtk.TreeViewColumn("Posição", cellrenderertext, text=0)
         self.__scoreboard_tree.append_column(ranking_column)
-        column_text = Gtk.TreeViewColumn("Nome do Competidor", cellrenderertext, text=1)
-        column_text.set_min_width(340)
-        self.__scoreboard_tree.append_column(column_text)
+        column_name = Gtk.TreeViewColumn("Nome do Competidor", cellrenderertext, text=1)
+        column_name.set_expand(True)
+        self.__scoreboard_tree.append_column(column_name)
         column_score = Gtk.TreeViewColumn("Pontuação", cellrenderertext, text=2)
         self.__scoreboard_tree.append_column(column_score)
 
